@@ -10,7 +10,7 @@ discover the 18 named moves hiding in the input space.
 ## Quick start
 
 ```sh
-git clone https://github.com/<you>/bored-game.git
+git clone https://github.com/lancePetrisko/bored-game.git
 cd bored-game
 npm install
 npm run dev
