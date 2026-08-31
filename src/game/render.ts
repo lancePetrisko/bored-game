@@ -45,6 +45,20 @@ export function render(ctx: CanvasRenderingContext2D, state: GameState, w: numbe
   drawHud(ctx, state, w, h, hue, hv);
   if (state.toast) drawToast(ctx, state, w, h);
   if (state.overlay > 0.002) drawCollection(ctx, state, w, h);
+  if (state.title > 0.002) drawTitle(ctx, state, w, h, hue);
+}
+
+export type HudTarget = 'mute' | 'combos' | null;
+
+/**
+ * Tap targets for the right-hand HUD labels. Lives here because it has to agree
+ * with where drawHud puts the text, and generous enough for a thumb.
+ */
+export function hudHitTest(x: number, y: number, w: number): HudTarget {
+  if (x < w - 210 || x > w - 6) return null;
+  if (y >= 8 && y < 44) return 'mute';
+  if (y >= 44 && y < 78) return 'combos';
+  return null;
 }
 
 function drawBackground(ctx: CanvasRenderingContext2D, w: number, h: number, hue: number, hv: number): void {
@@ -221,14 +235,17 @@ function drawHud(
   ctx.fillText(`COMBOS ${discovered}/${COMBOS.length}`, 24, 74);
 
   ctx.textAlign = 'right';
-  ctx.fillText(state.stats.muted ? 'SOUND OFF  M' : 'SOUND ON  M', w - 24, 34);
-  ctx.fillText('COMBOS  TAB', w - 24, 54);
+  const key = state.touch ? '' : '  M';
+  ctx.fillText(state.stats.muted ? `SOUND OFF${key}` : `SOUND ON${key}`, w - 24, 34);
+  ctx.fillText(state.touch ? 'COMBOS' : 'COMBOS  TAB', w - 24, 54);
 
-  if (state.hint > 0.01) {
+  // The title card carries its own instructions, so the hint waits its turn.
+  if (state.hint > 0.01 && state.title < 0.02) {
     ctx.textAlign = 'center';
     ctx.font = font(13, 600);
     ctx.fillStyle = `hsl(220 20% 75% / ${state.hint * 0.55})`;
-    ctx.fillText('arrow keys to move — find the named combos', w / 2, h - 38);
+    const move = state.touch ? 'swipe to move' : 'arrow keys to move';
+    ctx.fillText(`${move} — find the named combos`, w / 2, h - 38);
   }
 }
 
@@ -282,12 +299,20 @@ function drawCollection(ctx: CanvasRenderingContext2D, state: GameState, w: numb
   ctx.fillStyle = 'hsl(220 20% 70% / 0.45)';
   ctx.font = font(12, 600);
   ctx.fillText(
-    `${state.stats.discovered.size} of ${COMBOS.length} found — TAB or ESC to close`,
+    state.touch
+      ? `${state.stats.discovered.size} of ${COMBOS.length} found — tap to close`
+      : `${state.stats.discovered.size} of ${COMBOS.length} found — TAB or ESC to close`,
     0,
     -h / 2 + 112,
   );
 
   const tiers: Tier[] = [1, 2, 3];
+  if (w < 700) {
+    drawCollectionList(ctx, state, w, h, tiers);
+    ctx.restore();
+    return;
+  }
+
   const colWidth = Math.min(300, (w - 120) / 3);
   const totalWidth = colWidth * 3 - 40;
   const top = -h / 2 + 168;
@@ -321,6 +346,112 @@ function drawCollection(ctx: CanvasRenderingContext2D, state: GameState, w: numb
       y += 44;
     }
   });
+
+  ctx.restore();
+}
+
+/**
+ * Phone layout for the collection: three columns do not fit, so the tiers stack
+ * as one list with the arrow sequence pushed to the right edge of the column.
+ */
+function drawCollectionList(
+  ctx: CanvasRenderingContext2D,
+  state: GameState,
+  w: number,
+  h: number,
+  tiers: Tier[],
+): void {
+  const colWidth = Math.min(340, w - 48);
+  const left = -colWidth / 2;
+  const right = colWidth / 2;
+  const ROW = 26;
+  const HEADER = 34;
+
+  const needed = tiers.length * HEADER + COMBOS.length * ROW;
+  const room = h - 190;
+  // Shrink rather than run off the bottom of a short screen.
+  const scale = Math.min(1, room / needed);
+
+  ctx.save();
+  ctx.scale(scale, scale);
+  let y = (-h / 2 + 150) / scale;
+
+  for (const tier of tiers) {
+    const hue = 195 + (tier - 1) * 60;
+    ctx.textAlign = 'left';
+    ctx.fillStyle = hsl(hue, 70, 70, 0.8);
+    ctx.font = font(11, 800);
+    ctx.fillText(TIER_LABEL[tier], left, y);
+    y += HEADER - 12;
+
+    for (const combo of COMBOS) {
+      if (combo.tier !== tier) continue;
+      const found = state.stats.discovered.has(combo.id);
+
+      ctx.textAlign = 'left';
+      ctx.fillStyle = found ? hsl(hue, 80, 78, 0.95) : 'hsl(220 15% 60% / 0.35)';
+      ctx.font = font(14, 700);
+      ctx.fillText(found ? combo.name : '???', left, y);
+
+      ctx.textAlign = 'right';
+      ctx.fillStyle = found ? hsl(hue, 60, 72, 0.6) : 'hsl(220 15% 60% / 0.22)';
+      ctx.font = font(13, 700);
+      ctx.fillText(combo.seq.map((d) => (found ? DIR_GLYPH[d] : '·')).join(' '), right, y);
+
+      y += ROW;
+    }
+    y += 12;
+  }
+
+  ctx.restore();
+}
+
+/** First-run card: the game's name, what it is, and how to start it. */
+function drawTitle(
+  ctx: CanvasRenderingContext2D,
+  state: GameState,
+  w: number,
+  h: number,
+  hue: number,
+): void {
+  const k = state.title;
+
+  ctx.fillStyle = `hsl(230 45% 3% / ${0.86 * k})`;
+  ctx.fillRect(0, 0, w, h);
+
+  ctx.save();
+  ctx.globalAlpha = k;
+  ctx.translate(w / 2, h / 2);
+  // Dismissing pushes the card away rather than blinking it out.
+  ctx.scale(1 + (1 - k) * 0.07, 1 + (1 - k) * 0.07);
+  ctx.textAlign = 'center';
+
+  const titleSize = Math.min(62, w / 8.5);
+  ctx.shadowColor = hsl(hue, 100, 60, 0.85);
+  ctx.shadowBlur = 30;
+  ctx.fillStyle = hsl(hue, 92, 76);
+  ctx.font = font(titleSize, 800);
+  ctx.fillText('BORED GAME', 0, -56);
+  ctx.shadowBlur = 0;
+
+  ctx.fillStyle = 'hsl(220 25% 78% / 0.7)';
+  ctx.font = font(Math.min(15, w / 27), 600);
+  ctx.fillText('a cube, a grid, and nothing to win', 0, -22);
+
+  const move = state.touch ? 'SWIPE TO MOVE' : 'ARROW KEYS TO MOVE';
+  ctx.fillStyle = hsl(hue, 60, 80, 0.85);
+  ctx.font = font(Math.min(17, w / 24), 700);
+  ctx.fillText(move, 0, 26);
+
+  ctx.fillStyle = 'hsl(220 20% 72% / 0.55)';
+  ctx.font = font(Math.min(13, w / 31), 600);
+  ctx.fillText(`${COMBOS.length} named combos are hidden in the directions`, 0, 52);
+
+  // A slow pulse on the call to action, so the card never reads as a dead screen.
+  const pulse = 0.55 + Math.sin(state.time * 3.4) * 0.3;
+  ctx.fillStyle = `hsl(220 25% 88% / ${pulse})`;
+  ctx.font = font(Math.min(14, w / 29), 700);
+  ctx.fillText(state.touch ? 'swipe anywhere to start' : 'press an arrow key to start', 0, 104);
 
   ctx.restore();
 }

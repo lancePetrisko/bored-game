@@ -47,6 +47,11 @@ npm run dev -- --open        # open the browser automatically
 | `Esc` | Close the collection |
 | `M` | Mute / unmute |
 
+On a phone, swipe anywhere to move. One continuous swipe counts a press every
+26px it travels, so a whole combo can be drawn without lifting your finger. Tap
+`COMBOS` or `SOUND` in the top right to toggle those, and tap anywhere to close
+the collection.
+
 Sound starts on your first keypress — browsers refuse to make noise before you
 interact with the page. If you hear nothing, press an arrow key first, then
 check that the top right does not say `SOUND OFF`.
@@ -67,6 +72,12 @@ at `/bored-game/`), set `base: '/bored-game/'` in a `vite.config.ts` first.
 
 No runtime dependencies — Vite and TypeScript are dev-only. Sound is synthesized
 with WebAudio, so there are no asset files to host.
+
+Link previews use `public/og.png`, generated from `tools/og-card.html` (the
+regeneration command is in a comment at the top of that file). The `og:` and
+`twitter:` URLs in `index.html` are absolute and currently point at
+`bored-game.pages.dev` — update them when the real domain is live, or shared
+links will preview blank.
 
 ## Troubleshooting
 

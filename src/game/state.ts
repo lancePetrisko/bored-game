@@ -37,6 +37,11 @@ export interface GameState {
   pressPulse: number;
   /** Fades the "arrows to move" hint out once you clearly get it. */
   hint: number;
+  /** True once a finger is used, so prompts can say swipe instead of arrow keys. */
+  touch: boolean;
+  titleOpen: boolean;
+  /** 1..0 fade of the title card, so dismissing it is not a hard cut. */
+  title: number;
 }
 
 export function createState(): GameState {
@@ -58,6 +63,9 @@ export function createState(): GameState {
     time: 0,
     pressPulse: 0,
     hint: 1,
+    touch: false,
+    titleOpen: true,
+    title: 1,
   };
 }
 
@@ -71,6 +79,8 @@ function stepStyle(state: GameState): StepStyle {
 }
 
 export function handlePress(state: GameState, dir: Dir, now: number): void {
+  // The first input is a real move as well as the thing that clears the title.
+  state.titleOpen = false;
   pushPress(state.buffer, dir, now);
 
   state.chain = now - state.lastPressTime <= CHAIN_WINDOW_MS ? state.chain + 1 : 1;
@@ -160,5 +170,6 @@ export function update(state: GameState, dt: number, now: number): void {
   }
 
   state.pressPulse = Math.max(0, state.pressPulse - dt * 4);
+  if (!state.titleOpen) state.title = Math.max(0, state.title - dt * 3.5);
   state.overlay += ((state.overlayOpen ? 1 : 0) - state.overlay) * Math.min(1, dt * 14);
 }

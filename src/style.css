@@ -16,6 +16,11 @@ body {
   display: block;
   width: 100vw;
   height: 100vh;
+  /* Mobile browsers shrink the visual viewport for the URL bar; dvh follows it. */
+  height: 100dvh;
   touch-action: none;
   cursor: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }

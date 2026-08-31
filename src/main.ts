@@ -1,6 +1,6 @@
 import './style.css';
-import { attachKeyboard } from './game/input';
-import { render } from './game/render';
+import { attachKeyboard, attachPointer } from './game/input';
+import { hudHitTest, render } from './game/render';
 import { createState, handlePress, toggleMute, update } from './game/state';
 import { flushStats } from './game/stats';
 
@@ -32,6 +32,23 @@ attachKeyboard({
   },
   onCloseOverlay: () => {
     state.overlayOpen = false;
+  },
+});
+
+attachPointer(canvas, {
+  onDir: (dir) => handlePress(state, dir, performance.now()),
+  onTouchDetected: () => {
+    state.touch = true;
+  },
+  onTap: (x, y) => {
+    if (state.overlayOpen) {
+      state.overlayOpen = false;
+      return;
+    }
+    const target = hudHitTest(x, y, width);
+    if (target === 'mute') toggleMute(state);
+    else if (target === 'combos') state.overlayOpen = true;
+    else state.titleOpen = false;
   },
 });
 
