@@ -24,3 +24,46 @@ body {
   -webkit-user-select: none;
   -webkit-tap-highlight-color: transparent;
 }
+
+/*
+ * Sits above the canvas because a canvas cannot hold a real link. Its own
+ * pointer events never reach the game, so tapping it will not fire a press.
+ */
+.credit {
+  position: fixed;
+  right: 16px;
+  bottom: 14px;
+  z-index: 1;
+  padding: 8px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: hsl(220 20% 75% / 0.35);
+  text-decoration: none;
+  transition: color 160ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.credit strong {
+  font-weight: 700;
+  color: hsl(220 20% 82% / 0.5);
+  transition: color 160ms ease;
+}
+
+.credit:hover,
+.credit:focus-visible {
+  color: hsl(195 85% 78% / 0.9);
+}
+
+.credit:hover strong,
+.credit:focus-visible strong {
+  color: hsl(195 95% 84%);
+}
+
+@media (max-width: 560px) {
+  .credit {
+    right: 10px;
+    bottom: 8px;
+    font-size: 10px;
+  }
+}

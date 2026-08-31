@@ -123,3 +123,7 @@ is interpolated off it.
 scales the shake, flash, particle count and chord. A combo whose sequence starts
 with a shorter combo still works — both fire, the short one first, which is how
 The Spin rolls into Windmill.
+
+## Credits
+
+Developed and maintained by [Lance Petrisko](https://lancepetrisko.com).
