@@ -1,7 +1,7 @@
 import './style.css';
 import { attachKeyboard, attachPointer } from './game/input';
-import { hudHitTest, render } from './game/render';
-import { createState, handlePress, toggleMute, update } from './game/state';
+import { cheatButtonRect, hudHitTest, render } from './game/render';
+import { createState, handlePress, toggleCheats, toggleMute, update } from './game/state';
 import { flushStats } from './game/stats';
 
 const canvas = document.getElementById('stage') as HTMLCanvasElement;
@@ -33,6 +33,10 @@ attachKeyboard({
   onCloseOverlay: () => {
     state.overlayOpen = false;
   },
+  // The cheat toggle lives in the collection, so the shortcut does too.
+  onToggleCheats: () => {
+    if (state.overlayOpen) toggleCheats(state);
+  },
 });
 
 attachPointer(canvas, {
@@ -42,7 +46,10 @@ attachPointer(canvas, {
   },
   onTap: (x, y) => {
     if (state.overlayOpen) {
-      state.overlayOpen = false;
+      const r = cheatButtonRect(width, height);
+      const onButton = x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h;
+      if (onButton) toggleCheats(state);
+      else state.overlayOpen = false;
       return;
     }
     const target = hudHitTest(x, y, width);
@@ -74,6 +81,10 @@ function frame(now: number): void {
     accumulator -= STEP;
     steps++;
   }
+
+  // The cursor is hidden while playing, but the collection has a button to aim at.
+  const cursor = state.overlayOpen ? 'default' : 'none';
+  if (canvas.style.cursor !== cursor) canvas.style.cursor = cursor;
 
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   render(ctx, state, width, height);

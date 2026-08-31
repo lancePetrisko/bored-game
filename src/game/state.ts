@@ -150,6 +150,11 @@ export function toggleMute(state: GameState): void {
   saveStats(state.stats);
 }
 
+export function toggleCheats(state: GameState): void {
+  state.stats.cheats = !state.stats.cheats;
+  saveStats(state.stats);
+}
+
 export function update(state: GameState, dt: number, now: number): void {
   state.time += dt;
 

@@ -46,11 +46,17 @@ npm run dev -- --open        # open the browser automatically
 | `Tab` or `?` | Combo collection (undiscovered moves show as `???`) |
 | `Esc` | Close the collection |
 | `M` | Mute / unmute |
+| `C` | Cheats — reveals every combo in the collection (only while it is open) |
 
 On a phone, swipe anywhere to move. One continuous swipe counts a press every
 26px it travels, so a whole combo can be drawn without lifting your finger. Tap
 `COMBOS` or `SOUND` in the top right to toggle those, and tap anywhere to close
 the collection.
+
+The collection has a **SHOW ALL COMBOS (CHEAT)** button along the bottom. It
+reveals the names and sequences you have not landed yet, but it does not mark
+them discovered — the `1 of 18 found` count stays honest, and the setting
+persists across reloads.
 
 Sound starts on your first keypress — browsers refuse to make noise before you
 interact with the page. If you hear nothing, press an arrow key first, then

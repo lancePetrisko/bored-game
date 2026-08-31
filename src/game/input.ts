@@ -18,6 +18,7 @@ export interface InputHandlers {
   onToggleMute(): void;
   onToggleOverlay(): void;
   onCloseOverlay(): void;
+  onToggleCheats(): void;
 }
 
 export function attachKeyboard(handlers: InputHandlers): () => void {
@@ -36,6 +37,8 @@ export function attachKeyboard(handlers: InputHandlers): () => void {
       handlers.onCloseOverlay();
     } else if (e.key === 'm' || e.key === 'M') {
       handlers.onToggleMute();
+    } else if (e.key === 'c' || e.key === 'C') {
+      handlers.onToggleCheats();
     }
   };
 

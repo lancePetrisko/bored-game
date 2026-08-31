@@ -310,6 +310,7 @@ function drawCollection(ctx: CanvasRenderingContext2D, state: GameState, w: numb
   if (w < 700) {
     drawCollectionList(ctx, state, w, h, tiers);
     ctx.restore();
+    drawCheatButton(ctx, state, w, h);
     return;
   }
 
@@ -330,15 +331,24 @@ function drawCollection(ctx: CanvasRenderingContext2D, state: GameState, w: numb
     for (const combo of COMBOS) {
       if (combo.tier !== tier) continue;
       const found = state.stats.discovered.has(combo.id);
+      const shown = found || state.stats.cheats;
 
-      ctx.fillStyle = found ? hsl(hue, 80, 78, 0.95) : 'hsl(220 15% 60% / 0.35)';
+      ctx.fillStyle = found
+        ? hsl(hue, 80, 78, 0.95)
+        : shown
+          ? hsl(hue, 35, 70, 0.5)
+          : 'hsl(220 15% 60% / 0.35)';
       ctx.font = font(15, 700);
-      ctx.fillText(found ? combo.name : '???', x, y);
+      ctx.fillText(shown ? combo.name : '???', x, y);
 
-      ctx.fillStyle = found ? hsl(hue, 60, 72, 0.6) : 'hsl(220 15% 60% / 0.22)';
+      ctx.fillStyle = found
+        ? hsl(hue, 60, 72, 0.6)
+        : shown
+          ? hsl(hue, 30, 70, 0.35)
+          : 'hsl(220 15% 60% / 0.22)';
       ctx.font = font(14, 700);
       ctx.fillText(
-        combo.seq.map((d) => (found ? DIR_GLYPH[d] : '·')).join(' '),
+        combo.seq.map((d) => (shown ? DIR_GLYPH[d] : '·')).join(' '),
         x,
         y + 18,
       );
@@ -347,6 +357,61 @@ function drawCollection(ctx: CanvasRenderingContext2D, state: GameState, w: numb
     }
   });
 
+  ctx.restore();
+  drawCheatButton(ctx, state, w, h);
+}
+
+export interface Rect {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+/** Shared by the drawing and the tap test, so the two can never drift apart. */
+export function cheatButtonRect(w: number, h: number): Rect {
+  const bw = Math.min(300, w - 64);
+  return { x: w / 2 - bw / 2, y: h - 84, w: bw, h: 42 };
+}
+
+/** Opt-in reveal for the combos you have not landed yet. Collection only. */
+function drawCheatButton(
+  ctx: CanvasRenderingContext2D,
+  state: GameState,
+  w: number,
+  h: number,
+): void {
+  const k = state.overlay;
+  const on = state.stats.cheats;
+  const r = cheatButtonRect(w, h);
+  const hue = on ? 45 : 200;
+
+  ctx.save();
+  ctx.globalAlpha = k;
+
+  ctx.fillStyle = on ? hsl(hue, 80, 55, 0.16) : 'hsl(220 30% 70% / 0.05)';
+  ctx.strokeStyle = on ? hsl(hue, 85, 65, 0.75) : 'hsl(220 25% 70% / 0.28)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.roundRect(r.x, r.y, r.w, r.h, 10);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = on ? hsl(hue, 90, 76, 0.95) : 'hsl(220 25% 78% / 0.55)';
+  ctx.font = font(13, 800);
+  ctx.fillText(on ? 'CHEATS ON — ALL COMBOS SHOWN' : 'SHOW ALL COMBOS (CHEAT)', r.x + r.w / 2, r.y + r.h / 2 - 5);
+
+  ctx.fillStyle = on ? hsl(hue, 50, 78, 0.5) : 'hsl(220 20% 75% / 0.3)';
+  ctx.font = font(10, 600);
+  ctx.fillText(
+    state.touch ? 'tap to toggle' : 'click, or press C',
+    r.x + r.w / 2,
+    r.y + r.h / 2 + 12,
+  );
+
+  ctx.textBaseline = 'alphabetic';
   ctx.restore();
 }
 
@@ -387,16 +452,25 @@ function drawCollectionList(
     for (const combo of COMBOS) {
       if (combo.tier !== tier) continue;
       const found = state.stats.discovered.has(combo.id);
+      const shown = found || state.stats.cheats;
 
       ctx.textAlign = 'left';
-      ctx.fillStyle = found ? hsl(hue, 80, 78, 0.95) : 'hsl(220 15% 60% / 0.35)';
+      ctx.fillStyle = found
+        ? hsl(hue, 80, 78, 0.95)
+        : shown
+          ? hsl(hue, 35, 70, 0.5)
+          : 'hsl(220 15% 60% / 0.35)';
       ctx.font = font(14, 700);
-      ctx.fillText(found ? combo.name : '???', left, y);
+      ctx.fillText(shown ? combo.name : '???', left, y);
 
       ctx.textAlign = 'right';
-      ctx.fillStyle = found ? hsl(hue, 60, 72, 0.6) : 'hsl(220 15% 60% / 0.22)';
+      ctx.fillStyle = found
+        ? hsl(hue, 60, 72, 0.6)
+        : shown
+          ? hsl(hue, 30, 70, 0.35)
+          : 'hsl(220 15% 60% / 0.22)';
       ctx.font = font(13, 700);
-      ctx.fillText(combo.seq.map((d) => (found ? DIR_GLYPH[d] : '·')).join(' '), right, y);
+      ctx.fillText(combo.seq.map((d) => (shown ? DIR_GLYPH[d] : '·')).join(' '), right, y);
 
       y += ROW;
     }

@@ -6,6 +6,8 @@ export interface Stats {
   totalPresses: number;
   discovered: Set<string>;
   muted: boolean;
+  /** Reveals undiscovered combos in the collection. Never marks them found. */
+  cheats: boolean;
 }
 
 interface StoredStats {
@@ -13,10 +15,17 @@ interface StoredStats {
   totalPresses?: number;
   discovered?: string[];
   muted?: boolean;
+  cheats?: boolean;
 }
 
 export function loadStats(): Stats {
-  const fallback: Stats = { bestChain: 0, totalPresses: 0, discovered: new Set(), muted: false };
+  const fallback: Stats = {
+    bestChain: 0,
+    totalPresses: 0,
+    discovered: new Set(),
+    muted: false,
+    cheats: false,
+  };
   try {
     const raw = localStorage.getItem(KEY);
     if (!raw) return fallback;
@@ -26,6 +35,7 @@ export function loadStats(): Stats {
       totalPresses: parsed.totalPresses ?? 0,
       discovered: new Set(parsed.discovered ?? []),
       muted: parsed.muted ?? false,
+      cheats: parsed.cheats ?? false,
     };
   } catch {
     // Private mode, disabled storage, or corrupt data: play anyway.
@@ -42,6 +52,7 @@ function write(stats: Stats): void {
       totalPresses: stats.totalPresses,
       discovered: [...stats.discovered],
       muted: stats.muted,
+      cheats: stats.cheats,
     };
     localStorage.setItem(KEY, JSON.stringify(stored));
   } catch {
