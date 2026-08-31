@@ -1,4 +1,4 @@
-# bored game
+# Bored Cube
 
 An arrow-key stim toy for the browser. You are a cube on an endless grid. Every
 press does something satisfying, and certain sequences are secretly named combos
@@ -17,6 +17,11 @@ npm run dev
 ```
 
 Then open **http://localhost:5173** and start pressing arrows.
+
+The repository, the npm package directory, and the `localStorage` key still use
+the old `bored-game` spelling. The repo name is fixed on GitHub's side, and
+renaming the storage key would wipe everyone's saved stats, so both stay put —
+only the name people see says **Bored Cube**.
 
 Requires Node 18 or newer (developed on Node 25). No other tooling needed.
 

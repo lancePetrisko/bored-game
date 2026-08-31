@@ -505,7 +505,7 @@ function drawTitle(
   ctx.shadowBlur = 30;
   ctx.fillStyle = hsl(hue, 92, 76);
   ctx.font = font(titleSize, 800);
-  ctx.fillText('BORED GAME', 0, -56);
+  ctx.fillText('BORED CUBE', 0, -56);
   ctx.shadowBlur = 0;
 
   ctx.fillStyle = 'hsl(220 25% 78% / 0.7)';
