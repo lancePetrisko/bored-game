@@ -586,26 +586,32 @@ function drawTitle(ctx: CanvasRenderingContext2D, state: GameState, w: number, h
   ctx.font = font(Math.min(62, w / 8.5), 800);
   drawRainbowText(ctx, 'BORED CUBE', state.time, -56);
 
+  // The claim rides the colour cycle; the tagline underneath stays plain, so the
+  // two read as a headline and its subtitle rather than two competing lines.
+  ctx.fillStyle = hsl(hue, 75, 80, 0.9);
+  ctx.font = font(Math.min(15, w / 26), 800);
+  ctx.fillText('THE ULTIMATE STIM GAME', 0, -20);
+
   ctx.fillStyle = 'hsl(220 25% 78% / 0.7)';
   ctx.font = font(Math.min(15, w / 27), 600);
-  ctx.fillText('a cube, a grid, and nothing to win', 0, -22);
+  ctx.fillText('a cube, a grid, and nothing to win', 0, 4);
 
   const move = state.touch ? 'SWIPE TO MOVE' : 'ARROW KEYS TO MOVE';
   ctx.fillStyle = hsl(hue, 60, 80, 0.85);
   ctx.font = font(Math.min(17, w / 24), 700);
-  ctx.fillText(move, 0, 26);
+  ctx.fillText(move, 0, 46);
 
   ctx.fillStyle = 'hsl(220 20% 72% / 0.55)';
   ctx.font = font(Math.min(13, w / 31), 600);
-  ctx.fillText(`${COMBOS.length} named combos are hidden in the directions`, 0, 52);
+  ctx.fillText(`${COMBOS.length} named combos are hidden in the directions`, 0, 72);
 
   // A slow pulse on the call to action, so the card never reads as a dead screen.
   const pulse = 0.55 + Math.sin(state.time * 3.4) * 0.3;
   ctx.fillStyle = `hsl(220 25% 88% / ${pulse})`;
   ctx.font = font(Math.min(14, w / 29), 700);
-  ctx.fillText(state.touch ? 'swipe anywhere to start' : 'press an arrow key to start', 0, 104);
+  ctx.fillText(state.touch ? 'swipe anywhere to start' : 'press an arrow key to start', 0, 122);
 
-  drawFlashWarning(ctx, w, 154);
+  drawFlashWarning(ctx, w, 172);
 
   ctx.restore();
 }

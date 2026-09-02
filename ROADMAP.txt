@@ -5,3 +5,7 @@ temporarly pause your session
 
 Make a new move called left zig zag where its
 up arrow, left arrow
+
+Add dinkie ups and dinkie downs
+Add dinkie up move is right arrow, up arrow, left arrow
+A dinkie down move is right arrow, down arrow, left arrow

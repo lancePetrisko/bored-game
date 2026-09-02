@@ -1,11 +1,12 @@
 # Bored Cube
 
-An arrow-key stim toy for the browser. You are a cube on an endless grid. Every
-press does something satisfying, and certain sequences are secretly named combos
-— press `→ ↑ ← ↓` quickly and you land the **Dinkie Lance**.
+The ultimate stim game: a cube, a grid, and nothing to win. You are a cube on an
+endless grid in the browser. Every press does something satisfying, and certain
+sequences are secretly named combos — press `→ ↑ ← ↓` quickly and you land the
+**Dinkie Lance**.
 
 There is no win condition. The loop is: mash arrows, watch the chain climb, and
-discover the 19 named moves hiding in the input space.
+discover the 21 named moves hiding in the input space.
 
 > [!WARNING]
 > **Photosensitivity.** This game uses fast flashing and rapidly cycling
@@ -65,7 +66,7 @@ to close the collection or to resume from a pause.
 
 The collection has a **SHOW ALL COMBOS (CHEAT)** button along the bottom. It
 reveals the names and sequences you have not landed yet, but it does not mark
-them discovered — the `1 of 19 found` count stays honest, and the setting
+them discovered — the `1 of 21 found` count stays honest, and the setting
 persists across reloads.
 
 Sound starts on your first keypress — browsers refuse to make noise before you

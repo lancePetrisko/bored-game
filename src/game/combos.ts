@@ -24,6 +24,10 @@ export const COMBOS: Combo[] = [
   { id: 'burrow', name: 'Burrow', seq: ['down', 'down', 'down', 'down'], windowMs: 380, tier: 1 },
   { id: 'crab-walk', name: 'Crab Walk', seq: ['left', 'left', 'left', 'left'], windowMs: 380, tier: 1 },
   { id: 'heartbeat', name: 'Heartbeat', seq: ['up', 'down', 'down', 'up'], windowMs: 450, tier: 1 },
+  // The Dinkie family: both are prefixes of Dinkie Lance, so working towards the
+  // tier 2 move pays out on the way there.
+  { id: 'dinkie-up', name: 'Dinkie Up', seq: ['right', 'up', 'left'], windowMs: 450, tier: 1 },
+  { id: 'dinkie-down', name: 'Dinkie Down', seq: ['right', 'down', 'left'], windowMs: 450, tier: 1 },
 
   { id: 'dinkie-lance', name: 'Dinkie Lance', seq: ['right', 'up', 'left', 'down'], windowMs: 600, tier: 2 },
   { id: 'the-spin', name: 'The Spin', seq: ['up', 'right', 'down', 'left'], windowMs: 500, tier: 2 },
