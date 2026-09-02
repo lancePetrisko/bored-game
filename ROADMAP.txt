@@ -1,0 +1,7 @@
+Roadmap and General Ideas:
+Make intro screen a rgb fun cycle through colors
+Make a pause button by pressing escape you can
+temporarly pause your session
+
+Make a new move called left zig zag where its
+up arrow, left arrow
