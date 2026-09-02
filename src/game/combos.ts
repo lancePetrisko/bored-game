@@ -30,6 +30,7 @@ export const COMBOS: Combo[] = [
   { id: 'reverse-spin', name: 'Reverse Spin', seq: ['up', 'left', 'down', 'right'], windowMs: 500, tier: 2 },
   { id: 'sidewinder', name: 'Sidewinder', seq: ['right', 'right', 'left', 'left', 'right', 'right'], windowMs: 420, tier: 2 },
   { id: 'zigzag', name: 'Zigzag', seq: ['right', 'down', 'right', 'down', 'right', 'down'], windowMs: 430, tier: 2 },
+  { id: 'left-zigzag', name: 'Left Zigzag', seq: ['up', 'left', 'up', 'left', 'up', 'left'], windowMs: 430, tier: 2 },
 
   { id: 'ladder', name: 'Ladder', seq: ['up', 'right', 'up', 'right', 'up', 'right'], windowMs: 450, tier: 3 },
   { id: 'staircase', name: 'Staircase', seq: ['down', 'left', 'down', 'left', 'down', 'left'], windowMs: 450, tier: 3 },

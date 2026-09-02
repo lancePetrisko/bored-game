@@ -17,7 +17,8 @@ export interface InputHandlers {
   onDir(dir: Dir): void;
   onToggleMute(): void;
   onToggleOverlay(): void;
-  onCloseOverlay(): void;
+  /** Escape: closes the collection if it is open, otherwise toggles pause. */
+  onEscape(): void;
   onToggleCheats(): void;
 }
 
@@ -34,7 +35,8 @@ export function attachKeyboard(handlers: InputHandlers): () => void {
       e.preventDefault();
       handlers.onToggleOverlay();
     } else if (e.key === 'Escape') {
-      handlers.onCloseOverlay();
+      e.preventDefault();
+      handlers.onEscape();
     } else if (e.key === 'm' || e.key === 'M') {
       handlers.onToggleMute();
     } else if (e.key === 'c' || e.key === 'C') {

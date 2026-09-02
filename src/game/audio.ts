@@ -36,6 +36,13 @@ export function isMuted(): boolean {
   return muted;
 }
 
+/** Silences any tail still ringing when the game pauses, without touching mute. */
+export function setSuspended(value: boolean): void {
+  if (!ctx) return;
+  if (value) void ctx.suspend();
+  else void ctx.resume();
+}
+
 function degreeToHz(degree: number): number {
   const octave = Math.min(Math.floor(degree / SCALE.length), MAX_OCTAVE);
   const semitones = SCALE[degree % SCALE.length] + octave * 12;

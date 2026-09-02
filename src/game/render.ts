@@ -44,11 +44,17 @@ export function render(ctx: CanvasRenderingContext2D, state: GameState, w: numbe
 
   drawHud(ctx, state, w, h, hue, hv);
   if (state.toast) drawToast(ctx, state, w, h);
+  if (state.pause > 0.002) drawPause(ctx, state, w, h);
   if (state.overlay > 0.002) drawCollection(ctx, state, w, h);
-  if (state.title > 0.002) drawTitle(ctx, state, w, h, hue);
+  if (state.title > 0.002) drawTitle(ctx, state, w, h);
 }
 
-export type HudTarget = 'mute' | 'combos' | null;
+/** Full colour wheel sweep, used by the title card. */
+function cycleHue(time: number, offset = 0): number {
+  return (time * 70 + offset) % 360;
+}
+
+export type HudTarget = 'mute' | 'combos' | 'pause' | null;
 
 /**
  * Tap targets for the right-hand HUD labels. Lives here because it has to agree
@@ -57,7 +63,8 @@ export type HudTarget = 'mute' | 'combos' | null;
 export function hudHitTest(x: number, y: number, w: number): HudTarget {
   if (x < w - 210 || x > w - 6) return null;
   if (y >= 8 && y < 44) return 'mute';
-  if (y >= 44 && y < 78) return 'combos';
+  if (y >= 44 && y < 64) return 'combos';
+  if (y >= 64 && y < 88) return 'pause';
   return null;
 }
 
@@ -238,6 +245,7 @@ function drawHud(
   const key = state.touch ? '' : '  M';
   ctx.fillText(state.stats.muted ? `SOUND OFF${key}` : `SOUND ON${key}`, w - 24, 34);
   ctx.fillText(state.touch ? 'COMBOS' : 'COMBOS  TAB', w - 24, 54);
+  ctx.fillText(state.touch ? 'PAUSE' : 'PAUSE  ESC', w - 24, 74);
 
   // The title card carries its own instructions, so the hint waits its turn.
   if (state.hint > 0.01 && state.title < 0.02) {
@@ -480,17 +488,90 @@ function drawCollectionList(
   ctx.restore();
 }
 
-/** First-run card: the game's name, what it is, and how to start it. */
-function drawTitle(
+/**
+ * Freeze card. Draws over the frozen scene, under the collection, so the game
+ * you paused stays visible behind it.
+ */
+function drawPause(ctx: CanvasRenderingContext2D, state: GameState, w: number, h: number): void {
+  const k = state.pause;
+  const hue = cycleHue(state.time);
+
+  ctx.fillStyle = `hsl(230 45% 3% / ${0.72 * k})`;
+  ctx.fillRect(0, 0, w, h);
+
+  // Same colour wash as the title card, so the two menus read as a set.
+  const wash = ctx.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, Math.max(w, h) * 0.55);
+  wash.addColorStop(0, hsl(hue, 90, 50, 0.16 * k));
+  wash.addColorStop(1, hsl(hue, 90, 50, 0));
+  ctx.fillStyle = wash;
+  ctx.fillRect(0, 0, w, h);
+
+  ctx.save();
+  ctx.globalAlpha = k;
+  ctx.translate(w / 2, h / 2);
+  ctx.scale(0.94 + k * 0.06, 0.94 + k * 0.06);
+  ctx.textAlign = 'center';
+
+  ctx.font = font(Math.min(58, w / 9), 800);
+  drawRainbowText(ctx, 'PAUSED', state.time, -6);
+
+  ctx.fillStyle = hsl(hue, 45, 82, 0.65);
+  ctx.font = font(Math.min(14, w / 28), 600);
+  ctx.fillText(
+    state.chain > 1 ? `chain of ${state.chain} is being held for you` : 'nothing is moving',
+    0,
+    28,
+  );
+
+  const pulse = 0.5 + Math.sin(state.time * 3.4) * 0.3;
+  ctx.fillStyle = hsl(hue, 70, 85, pulse);
+  ctx.font = font(Math.min(14, w / 29), 700);
+  ctx.fillText(state.touch ? 'tap anywhere to resume' : 'press ESC to resume', 0, 72);
+
+  ctx.restore();
+}
+
+/**
+ * Letter-by-letter rainbow that rolls over time. Uses the font already set on
+ * the context, draws centred on x = 0, and leaves textAlign back at centre.
+ */
+function drawRainbowText(
   ctx: CanvasRenderingContext2D,
-  state: GameState,
-  w: number,
-  h: number,
-  hue: number,
+  text: string,
+  time: number,
+  y: number,
 ): void {
+  const letters = [...text];
+  const widths = letters.map((ch) => ctx.measureText(ch).width);
+  const total = widths.reduce((a, b) => a + b, 0);
+
+  ctx.textAlign = 'left';
+  ctx.shadowBlur = 30;
+  let x = -total / 2;
+  letters.forEach((ch, i) => {
+    const lh = cycleHue(time, i * 30);
+    ctx.shadowColor = hsl(lh, 100, 60, 0.85);
+    ctx.fillStyle = hsl(lh, 95, 72);
+    ctx.fillText(ch, x, y);
+    x += widths[i];
+  });
+  ctx.shadowBlur = 0;
+  ctx.textAlign = 'center';
+}
+
+/** First-run card: the game's name, what it is, and how to start it. */
+function drawTitle(ctx: CanvasRenderingContext2D, state: GameState, w: number, h: number): void {
   const k = state.title;
+  const hue = cycleHue(state.time);
 
   ctx.fillStyle = `hsl(230 45% 3% / ${0.86 * k})`;
+  ctx.fillRect(0, 0, w, h);
+
+  // The whole card sits in a wash of the current cycle colour.
+  const wash = ctx.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, Math.max(w, h) * 0.55);
+  wash.addColorStop(0, hsl(hue, 90, 50, 0.18 * k));
+  wash.addColorStop(1, hsl(hue, 90, 50, 0));
+  ctx.fillStyle = wash;
   ctx.fillRect(0, 0, w, h);
 
   ctx.save();
@@ -500,13 +581,10 @@ function drawTitle(
   ctx.scale(1 + (1 - k) * 0.07, 1 + (1 - k) * 0.07);
   ctx.textAlign = 'center';
 
-  const titleSize = Math.min(62, w / 8.5);
-  ctx.shadowColor = hsl(hue, 100, 60, 0.85);
-  ctx.shadowBlur = 30;
-  ctx.fillStyle = hsl(hue, 92, 76);
-  ctx.font = font(titleSize, 800);
-  ctx.fillText('BORED CUBE', 0, -56);
-  ctx.shadowBlur = 0;
+  // The wordmark runs a rainbow through its letters and rolls the whole sweep
+  // over time, so the first screen is the most colourful thing in the game.
+  ctx.font = font(Math.min(62, w / 8.5), 800);
+  drawRainbowText(ctx, 'BORED CUBE', state.time, -56);
 
   ctx.fillStyle = 'hsl(220 25% 78% / 0.7)';
   ctx.font = font(Math.min(15, w / 27), 600);
@@ -527,5 +605,67 @@ function drawTitle(
   ctx.font = font(Math.min(14, w / 29), 700);
   ctx.fillText(state.touch ? 'swipe anywhere to start' : 'press an arrow key to start', 0, 104);
 
+  drawFlashWarning(ctx, w, 154);
+
   ctx.restore();
+}
+
+/**
+ * Photosensitivity notice on the title card. Held at a steady amber and given a
+ * boxed rule of its own: a warning about flashing must not itself flash, cycle,
+ * or blend into the rainbow above it.
+ */
+function drawFlashWarning(ctx: CanvasRenderingContext2D, w: number, y: number): void {
+  const AMBER = 42;
+  const PAD = 14;
+  const boxW = Math.min(440, w - 32);
+
+  const bodySize = Math.min(11.5, w / 32);
+  const lineHeight = bodySize * 1.35;
+  ctx.font = font(bodySize, 600);
+  const body = wrapText(
+    ctx,
+    'this game uses fast flashing and rapidly cycling colours. do not play if you are sensitive to that, or have epilepsy.',
+    boxW - PAD * 2,
+  );
+
+  const headSize = Math.min(12, w / 30);
+  const boxH = PAD * 2 + headSize + 6 + body.length * lineHeight;
+  const top = y - headSize - PAD + 2;
+
+  ctx.fillStyle = hsl(AMBER, 80, 50, 0.09);
+  ctx.strokeStyle = hsl(AMBER, 85, 62, 0.42);
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.roundRect(-boxW / 2, top, boxW, boxH, 8);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.textAlign = 'center';
+  ctx.fillStyle = hsl(AMBER, 90, 72, 0.95);
+  ctx.font = font(headSize, 800);
+  ctx.fillText('⚠ PHOTOSENSITIVITY WARNING', 0, y);
+
+  ctx.fillStyle = hsl(AMBER, 45, 80, 0.72);
+  ctx.font = font(bodySize, 600);
+  body.forEach((line, i) => {
+    ctx.fillText(line, 0, y + 6 + (i + 1) * lineHeight);
+  });
+}
+
+/** Greedy word wrap against the font currently set on the context. */
+function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
+  const lines: string[] = [];
+  let line = '';
+  for (const word of text.split(' ')) {
+    const next = line ? `${line} ${word}` : word;
+    if (line && ctx.measureText(next).width > maxWidth) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = next;
+    }
+  }
+  if (line) lines.push(line);
+  return lines;
 }

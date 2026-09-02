@@ -42,6 +42,12 @@ export interface GameState {
   titleOpen: boolean;
   /** 1..0 fade of the title card, so dismissing it is not a hard cut. */
   title: number;
+  /** Freezes the simulation without losing the chain. */
+  paused: boolean;
+  /** 0..1 open amount of the pause card. */
+  pause: number;
+  /** Timestamp the pause began, used to rewind the chain clock on resume. */
+  pauseStart: number;
 }
 
 export function createState(): GameState {
@@ -66,6 +72,9 @@ export function createState(): GameState {
     touch: false,
     titleOpen: true,
     title: 1,
+    paused: false,
+    pause: 0,
+    pauseStart: 0,
   };
 }
 
@@ -79,6 +88,7 @@ function stepStyle(state: GameState): StepStyle {
 }
 
 export function handlePress(state: GameState, dir: Dir, now: number): void {
+  if (state.paused) return;
   // The first input is a real move as well as the thing that clears the title.
   state.titleOpen = false;
   pushPress(state.buffer, dir, now);
@@ -150,6 +160,24 @@ export function toggleMute(state: GameState): void {
   saveStats(state.stats);
 }
 
+/**
+ * A pause is a hard freeze: nothing simulates, and on resume the chain clock is
+ * pushed forward by the paused duration so a chain never dies while you are away.
+ */
+export function togglePause(state: GameState, now: number): void {
+  // The title card is already a pause; a second one on top just confuses.
+  if (state.titleOpen) return;
+
+  if (state.paused) {
+    state.paused = false;
+    state.lastPressTime += now - state.pauseStart;
+  } else {
+    state.paused = true;
+    state.pauseStart = now;
+  }
+  audio.setSuspended(state.paused);
+}
+
 export function toggleCheats(state: GameState): void {
   state.stats.cheats = !state.stats.cheats;
   saveStats(state.stats);
@@ -157,6 +185,13 @@ export function toggleCheats(state: GameState): void {
 
 export function update(state: GameState, dt: number, now: number): void {
   state.time += dt;
+  state.pause += ((state.paused ? 1 : 0) - state.pause) * Math.min(1, dt * 14);
+
+  if (state.paused) {
+    // Everything else holds its exact position; only the cards keep animating.
+    state.overlay += ((state.overlayOpen ? 1 : 0) - state.overlay) * Math.min(1, dt * 14);
+    return;
+  }
 
   if (state.chain > 0 && now - state.lastPressTime > CHAIN_WINDOW_MS) {
     state.chain = 0;
