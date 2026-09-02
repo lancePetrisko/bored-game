@@ -1,4 +1,12 @@
 Roadmap and General Ideas:
+TODO
+Optimize the screen space on mobile
+Figure out a more fair way to play on mobile
+
+
+
+
+DONE
 Make intro screen a rgb fun cycle through colors
 Make a pause button by pressing escape you can
 temporarly pause your session
