@@ -2,6 +2,7 @@ Roadmap and General Ideas:
 TODO
 Optimize the screen space on mobile
 Figure out a more fair way to play on mobile
+Make the on-screen effects a little less intense (make it laggy)
 
 
 
