@@ -590,7 +590,7 @@ function drawTitle(ctx: CanvasRenderingContext2D, state: GameState, w: number, h
   // two read as a headline and its subtitle rather than two competing lines.
   ctx.fillStyle = hsl(hue, 75, 80, 0.9);
   ctx.font = font(Math.min(15, w / 26), 800);
-  ctx.fillText('THE ULTIMATE STIM GAME', 0, -20);
+  ctx.fillText('ULTIME STIM GAME', 0, -20);
 
   ctx.fillStyle = 'hsl(220 25% 78% / 0.7)';
   ctx.font = font(Math.min(15, w / 27), 600);
