@@ -68,15 +68,26 @@ export function hudHitTest(x: number, y: number, w: number): HudTarget {
   return null;
 }
 
+let bgGradCache: { w: number; h: number; hue: number; hv: number; grad: CanvasGradient } | null = null;
+
+// hue/hv here only change when the chain count changes, not per-frame, so the
+// gradient object is cached and only rebuilt on a real change or a resize.
+function getBackgroundGradient(ctx: CanvasRenderingContext2D, w: number, h: number, hue: number, hv: number): CanvasGradient {
+  const c = bgGradCache;
+  if (c && c.w === w && c.h === h && c.hue === hue && c.hv === hv) return c.grad;
+  const radius = Math.max(w, h) * 0.75;
+  const grad = ctx.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, radius);
+  grad.addColorStop(0, hsl(hue, 80, 50, 0.05 + hv * 0.16));
+  grad.addColorStop(1, hsl(hue, 80, 50, 0));
+  bgGradCache = { w, h, hue, hv, grad };
+  return grad;
+}
+
 function drawBackground(ctx: CanvasRenderingContext2D, w: number, h: number, hue: number, hv: number): void {
   ctx.fillStyle = BG;
   ctx.fillRect(0, 0, w, h);
 
-  const radius = Math.max(w, h) * 0.75;
-  const glow = ctx.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, radius);
-  glow.addColorStop(0, hsl(hue, 80, 50, 0.05 + hv * 0.16));
-  glow.addColorStop(1, hsl(hue, 80, 50, 0));
-  ctx.fillStyle = glow;
+  ctx.fillStyle = getBackgroundGradient(ctx, w, h, hue, hv);
   ctx.fillRect(0, 0, w, h);
 }
 
@@ -110,7 +121,7 @@ function drawGrid(
   ctx.stroke();
 
   // Intersections light up near the cube, so the grid reads as reactive.
-  const reach = 300 + hv * 180;
+  const reach = 200 + hv * 110;
   const reach2 = reach * reach;
   ctx.fillStyle = hsl(hue, 90, 70, 1);
   for (let x = startX; x <= w + CELL; x += CELL) {
@@ -120,7 +131,7 @@ function drawGrid(
       const d2 = dx * dx + dy * dy;
       if (d2 > reach2) continue;
       const k = 1 - Math.sqrt(d2) / reach;
-      ctx.globalAlpha = k * k * (0.38 + hv * 0.5);
+      ctx.globalAlpha = k * k * (0.28 + hv * 0.4);
       const s = 2 + k * 2.4;
       ctx.fillRect(x - s / 2, y - s / 2, s, s);
     }
@@ -183,7 +194,7 @@ function drawCube(
   ctx.rotate(cube.spin);
 
   ctx.shadowColor = hsl(hue, 100, 60, 0.9);
-  ctx.shadowBlur = 22 + hv * 40 + cube.land * 18 + Math.sin(state.time * 2.1) * 4;
+  ctx.shadowBlur = Math.min(40, 10 + hv * 20 + cube.land * 8 + Math.sin(state.time * 2.1) * 2);
 
   const wpx = base * sx;
   const hpx = base * sy;
@@ -222,7 +233,7 @@ function drawHud(
     ctx.scale(0.92 + pop * 0.12, 0.92 + pop * 0.12);
     ctx.textAlign = 'center';
     ctx.shadowColor = hsl(hue, 100, 60, 0.8);
-    ctx.shadowBlur = 18 + hv * 34;
+    ctx.shadowBlur = 10 + hv * 16;
     ctx.fillStyle = hsl(hue, 95, 72);
     ctx.font = font(size, 800);
     ctx.fillText(String(state.chain), 0, 0);
@@ -271,7 +282,7 @@ function drawToast(ctx: CanvasRenderingContext2D, state: GameState, w: number, h
   ctx.textAlign = 'center';
 
   ctx.shadowColor = hsl(hue, 100, 60, 0.9);
-  ctx.shadowBlur = 26;
+  ctx.shadowBlur = 14;
   ctx.fillStyle = hsl(hue, 95, 74);
   ctx.font = font(42 + combo.tier * 6, 800);
   ctx.fillText(combo.name.toUpperCase(), 0, 0);
@@ -546,7 +557,7 @@ function drawRainbowText(
   const total = widths.reduce((a, b) => a + b, 0);
 
   ctx.textAlign = 'left';
-  ctx.shadowBlur = 30;
+  ctx.shadowBlur = 16;
   let x = -total / 2;
   letters.forEach((ch, i) => {
     const lh = cycleHue(time, i * 30);

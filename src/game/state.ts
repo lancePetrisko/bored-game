@@ -110,7 +110,7 @@ export function handlePress(state: GameState, dir: Dir, now: number): void {
   emit(state.particles, {
     x: pos.x * CELL,
     y: pos.y * CELL,
-    count: 5 + Math.round(h * 10),
+    count: 4 + Math.round(h * 6),
     angle: Math.atan2(-v.y, -v.x),
     spread: 1.1,
     speed: 170 + h * 190,
@@ -139,7 +139,7 @@ function fireCombo(state: GameState, combo: Combo, hue: number): void {
   emit(state.particles, {
     x: pos.x * CELL,
     y: pos.y * CELL,
-    count: 26 * combo.tier,
+    count: 18 * combo.tier,
     speed: 240 + combo.tier * 120,
     life: 0.55 + combo.tier * 0.15,
     size: 4 + combo.tier,
